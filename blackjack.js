@@ -2,6 +2,8 @@ var printToScreen = function(text){
   document.getElementById('demo').innerHTML += text + "<br>";
   document.getElementById('demo_parent').style.display = 'none';
   document.getElementById('demo_parent').style.display = 'block';
+
+
 }
 
 function Deck(cards){
@@ -146,35 +148,95 @@ HeldCards.prototype.getCards = function(deck, who){
   }
 }
 
+function Player (hands){
+    this.hands = [];
+}
+
+Player.prototype.push = function(arg){
+    this.hands.push(arg);
+}
+
+var checkForWin = function(playerHand, dealerHand){
+  if((playerHand.total() > dealerHand.total()) && (playerHand.total() < 22)){
+    printToScreen("You Win!");
+  }else if(playerHand.total() === dealerHand.total()){
+    printToScreen("Push");
+  }else if(playerHand.total()<22 && dealerHand.total()>21){
+    printToScreen("You Win!");
+  }else{
+    printToScreen("You Lose!!!");
+  }
+};
+
 var main = function(){
   printToScreen("Let's Play Blackjack!");
-  var howMany = prompt("how many decks?");
+  var howMany = prompt("How many decks?");
+  var shouldDealer = false;
   var newDeck = new Deck();
-  newDeck.createDeck(howMany);
+  var playerHands = new Player();
   var playerCards = new HeldCards();
   var dealerCards = new HeldCards();
+  newDeck.createDeck(howMany);
+  var currentHand = 0;
 
   for(var i = 0; i<2; i++){
     playerCards.push(newDeck.draw());
     dealerCards.push(newDeck.draw());
   }
-  printToScreen("Your cards are: " + playerCards.cards[0].identify() + " and " + playerCards.cards[1].identify());
-  printToScreen("Your cards total: " + playerCards.total())
+/*  testCards = new Card(4, "spades");
+  testCards2 = new Card(4, "clubs");
+  playerCards.push(testCards2);
+ 	playerCards.push(testCards);*/
+
+ 	playerHands.push(playerCards);
+
+  printToScreen("Your cards are: " + playerHands.hands[0].cards[0].identify() + " and " + playerHands.hands[0].cards[1].identify());
+  printToScreen("Your cards total: " + playerHands.hands[0].total());
   printToScreen("The computer is showing a: " + dealerCards.cards[0].identify());
 
-  playerCards.getCards(newDeck,"player");
-  if(playerCards.total() < 22){
-    dealerCards.getCards(newDeck);
+  if(playerHands.hands[currentHand].cards[0].val === playerHands.hands[currentHand].cards[1].val){
+  	var splitCheck = prompt("Would you like to split? (yes or no)");
+  	  switch(splitCheck.toLowerCase()){
+        case "yes":
+        	printToScreen("You split");
+        	splitHand = new HeldCards();
+        	splitHand.push(playerHands.hands[currentHand].draw());
+        	splitHand.push(newDeck.draw());
+        	playerHands.hands[currentHand].push(newDeck.draw());
+        	playerHands.push(splitHand);
+
+        	currentHand = currentHand +1;
+        	break;
+        case "no":
+        	break;
+        default:
+        	break;
+      }
   }
-  if((playerCards.total() > dealerCards.total()) && (playerCards.total() < 22)){
-    printToScreen("You Win!");
-  }else if(playerCards.total() === dealerCards.total()){
-    printToScreen("Push");
-  }else if(playerCards.total()<22 && dealerCards.total()>21){
-    printToScreen("You Win!");
-  }else{
-    printToScreen("You Lose!!!")
-  }
+
+ for(var x = 0; x<playerHands.hands.length; x++){
+   if(playerHands.hands.length>1){
+   printToScreen("Hand " + (x + 1));
+   printToScreen(playerHands.hands[x].cards[0].identify() + " " + playerHands.hands[x].cards[1].identify());
+ 	}
+   playerHands.hands[x].getCards(newDeck, "player");
+	}
+
+	for(var n = 0; n<playerHands.hands.length; n++){
+		if(playerHands.hands[n].total() < 22){
+			shouldDealer = true;
+		}
+	}
+	if(shouldDealer === true){
+		dealerCards.getCards(newDeck);
+	}
+
+	for(var i = 0; i<playerHands.hands.length; i++){
+   if(playerHands.hands.length>1){
+		printToScreen("Hand " + (i+1))
+	}
+		checkForWin(playerHands.hands[i], dealerCards)
+	}
 };
 
 main();
